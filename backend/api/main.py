@@ -1,27 +1,21 @@
-"""FastAPI application main entry point.
-
-Person 5 owns this module.
-"""
+"""FastAPI application entry point."""
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+import os
 
-from backend.config import get_settings
-from backend.api.routes import analysis, health
-
-
-settings = get_settings()
+from backend.api.routes import health, analysis
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifecycle management."""
+    """Application lifecycle."""
     # Startup
-    print("Starting VentureMind AI Backend")
+    print("Starting VentureMind AI API")
     yield
     # Shutdown
-    print("Shutting down VentureMind AI Backend")
+    print("Shutting down VentureMind AI API")
 
 
 app = FastAPI(
@@ -62,5 +56,5 @@ if __name__ == "__main__":
         app,
         host="0.0.0.0",
         port=8000,
-        reload=settings.DEBUG,
+        reload=os.getenv("DEBUG", "False") == "True",
     )

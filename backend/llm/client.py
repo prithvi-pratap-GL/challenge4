@@ -1,43 +1,51 @@
+"""OpenAI-compatible LLM client wrapper.
+
+Supports: OpenAI, Azure, OpenRouter, Ollama, local models
+"""
+
 from typing import Any, Type, TypeVar, Optional
 from openai import OpenAI, AzureOpenAI
 from pydantic import BaseModel
 import json
 import re
-
-from backend.config import get_settings
+import os
 
 T = TypeVar("T", bound=BaseModel)
 
 
 class LLMClient:
-    """OpenAI-compatible LLM client wrapper supporting multiple providers."""
+    """OpenAI-compatible LLM client."""
 
-    def __init__(self):
-        """Initialize LLM client from environment configuration."""
-        self.settings = get_settings()
+    def __init__(self, api_key: str = None, model_name: str = None, base_url: str = None, temperature: float = 0.7):
+        """
+        Initialize LLM client.
+
+        Args:
+            api_key: LLM API key (defaults to env var)
+            model_name: Model name (defaults to env var)
+            base_url: API endpoint (defaults to env var)
+            temperature: Response temperature
+        """
+        self.api_key = api_key or os.getenv("API_KEY", "")
+        self.model_name = model_name or os.getenv("MODEL_NAME", "gpt-4o-mini")
+        self.base_url = base_url or os.getenv("BASE_URL", "https://api.openai.com/v1")
+        self.temperature = temperature
+
         self._init_client()
 
     def _init_client(self):
-        """Initialize appropriate OpenAI client based on configuration."""
-        api_key = self.settings.API_KEY
-        model_name = self.settings.MODEL_NAME
-        base_url = self.settings.BASE_URL
-        temperature = self.settings.TEMPERATURE
-
-        self.model_name = model_name
-        self.temperature = temperature
-
-        if base_url and "azure" in base_url.lower():
+        """Initialize appropriate OpenAI client."""
+        if "azure" in self.base_url.lower():
             self.client = AzureOpenAI(
-                api_key=api_key,
+                api_key=self.api_key,
                 api_version="2024-02-15-preview",
-                azure_endpoint=base_url,
+                azure_endpoint=self.base_url,
             )
             self.is_azure = True
         else:
             self.client = OpenAI(
-                api_key=api_key,
-                base_url=base_url or "https://api.openai.com/v1",
+                api_key=self.api_key,
+                base_url=self.base_url,
             )
             self.is_azure = False
 
@@ -48,15 +56,15 @@ class LLMClient:
         response_model: Optional[Type[T]] = None,
     ) -> str | T:
         """
-        Generate a response using the LLM.
+        Generate response from LLM.
 
         Args:
-            system_prompt: System context/role for the LLM
-            user_prompt: User input/question
+            system_prompt: System context
+            user_prompt: User query
             response_model: Optional Pydantic model for structured output
 
         Returns:
-            str if response_model is None, otherwise an instance of response_model
+            Generated text or structured response
         """
         messages = [
             {"role": "system", "content": system_prompt},
@@ -91,7 +99,7 @@ class LLMClient:
                     return response_model(**data)
                 return response_model(**json.loads(content))
             except (json.JSONDecodeError, ValueError) as e:
-                raise ValueError(f"Failed to parse response as {response_model.__name__}: {e}")
+                raise ValueError(f"Failed to parse response: {e}")
 
         return content
 
@@ -128,5 +136,5 @@ class LLMClient:
 
 
 def get_llm_client() -> LLMClient:
-    """Get singleton LLM client instance."""
+    """Get LLM client instance."""
     return LLMClient()

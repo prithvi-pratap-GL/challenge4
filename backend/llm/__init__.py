@@ -1,3 +1,12 @@
-from .client import LLMClient, get_llm_client
+"""LLM client and model management."""
 
-__all__ = ["LLMClient", "get_llm_client"]
+from .client import LLMClient, get_llm_client
+from .models import ModelProvider, LLMModel, TemperatureSetting
+
+__all__ = [
+    "LLMClient",
+    "get_llm_client",
+    "ModelProvider",
+    "LLMModel",
+    "TemperatureSetting",
+]
