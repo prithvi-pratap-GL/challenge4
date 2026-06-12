@@ -1,0 +1,164 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+venv/
+ENV/
+env/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.hypothesis/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Node.js (for frontend)
+node_modules/
+npm-debug.log
+yarn-error.log
+dist/
+build/
+
+# Frontend build artifacts
+frontend/build/
+frontend/out/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+postgres_data/
+pg_data/
+
+# Logs
+logs/
+*.log
+*.log.*
+lerna-debug.log*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# JetBrains
+.idea/
+.gradle
+.gradle/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Credentials and secrets
+*.pem
+*.key
+*.pfx
+*.p12
+credentials.json
+secrets.json
+api_keys.txt
+
+# Large files
+*.tar.gz
+*.zip
+*.rar
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# CI/CD
+.github/workflows/secrets/
+
+# LLM/Vector DB
+*.faiss
+*.index
+embeddings/
+
+# Qdrant vector store (local dev)
+qdrant_storage/
+
+# Generated files
+*.generated.py
+generated/
+
+# Backup files
+*.backup
+*.old
+*.orig
