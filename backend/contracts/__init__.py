@@ -1,3 +1,9 @@
+"""VentureMind AI Contract Definitions.
+
+Frozen contracts that define interfaces between modules.
+All team members import ONLY these contracts, never implementation details.
+"""
+
 from .startup import StartupInput
 from .report import FinalReport
 from .research import ResearchOutput
