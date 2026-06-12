@@ -3,23 +3,7 @@
 from typing import Any, Dict, List
 from backend.agents.schemas import BullOutput
 from backend.agents.bull.prompts import BULL_SYSTEM_PROMPT, BULL_USER_PROMPT_TEMPLATE
-
-
-# Placeholder for Person 5's LLM wrapper integration
-# This will be replaced with actual LLM client once Person 5 provides it
-class LLMClientPlaceholder:
-    """Temporary placeholder - will be replaced by Person 5's llm.client module."""
-
-    async def generate(
-        self,
-        system_prompt: str,
-        user_prompt: str,
-        response_model: type
-    ) -> Any:
-        """Generate response from LLM with structured output."""
-        raise NotImplementedError(
-            "LLM client not yet integrated. Awaiting Person 5's llm.client module."
-        )
+from backend.llm.client import LLMClient
 
 
 async def run_bull_case(
@@ -105,20 +89,14 @@ async def run_bull_case(
         identified_risks=identified_risks
     )
 
-    # TODO: Integrate with Person 5's LLM wrapper once available
-    # For now, this demonstrates the expected integration pattern
-    # llm_client = LLMClient()  # Person 5's client
-    # response = await llm_client.generate(
-    #     system_prompt=BULL_SYSTEM_PROMPT,
-    #     user_prompt=user_prompt,
-    #     response_model=BullOutput
-    # )
-    # return response
-
-    # Temporary: Return a placeholder to demonstrate function structure
-    raise NotImplementedError(
-        "Awaiting Person 5's LLM client integration in backend.llm.client"
+    # Integrate with LLM client
+    llm_client = LLMClient()
+    response = await llm_client.generate(
+        system_prompt=BULL_SYSTEM_PROMPT,
+        user_prompt=user_prompt,
+        response_model=BullOutput
     )
+    return response
 
 
 def _format_list(items: List[str]) -> str:

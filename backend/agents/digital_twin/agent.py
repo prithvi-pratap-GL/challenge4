@@ -7,6 +7,7 @@ from backend.agents.digital_twin.prompts import (
     SCENARIO_USER_PROMPT_TEMPLATE
 )
 from backend.agents.schemas import SimulationOutput
+from backend.llm.client import LLMClient
 
 
 async def simulate_scenarios(
@@ -114,24 +115,14 @@ async def simulate_scenarios(
         opportunities = _identify_opportunities(scenario_prompt, founder_backgrounds)
         scenario_risks = _identify_scenario_risks(scenario_prompt, risks)
 
-        # Create simulation output
-        simulation = SimulationOutput(
-            scenario=scenario_prompt,
-            survival_probability=survival_prob,
-            opportunities=opportunities,
-            risks=scenario_risks
+        # Integrate with LLM client for dynamic simulation
+        llm_client = LLMClient()
+        response = await llm_client.generate(
+            system_prompt=DIGITAL_TWIN_SYSTEM_PROMPT,
+            user_prompt=user_prompt,
+            response_model=SimulationOutput
         )
-
-        results.append(simulation)
-
-        # TODO: Integrate with Person 5's LLM wrapper for dynamic LLM-based simulation
-        # llm_client = LLMClient()
-        # response = await llm_client.generate(
-        #     system_prompt=DIGITAL_TWIN_SYSTEM_PROMPT,
-        #     user_prompt=user_prompt,
-        #     response_model=SimulationOutput
-        # )
-        # results.append(response)
+        results.append(response)
 
     return results
 

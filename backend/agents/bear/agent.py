@@ -3,6 +3,7 @@
 from typing import Any, Dict, List
 from backend.agents.schemas import BearOutput
 from backend.agents.bear.prompts import BEAR_SYSTEM_PROMPT, BEAR_USER_PROMPT_TEMPLATE
+from backend.llm.client import LLMClient
 
 
 async def run_bear_case(
@@ -88,20 +89,14 @@ async def run_bear_case(
         identified_risks=identified_risks
     )
 
-    # TODO: Integrate with Person 5's LLM wrapper once available
-    # For now, this demonstrates the expected integration pattern
-    # llm_client = LLMClient()  # Person 5's client
-    # response = await llm_client.generate(
-    #     system_prompt=BEAR_SYSTEM_PROMPT,
-    #     user_prompt=user_prompt,
-    #     response_model=BearOutput
-    # )
-    # return response
-
-    # Temporary: Return a placeholder to demonstrate function structure
-    raise NotImplementedError(
-        "Awaiting Person 5's LLM client integration in backend.llm.client"
+    # Integrate with LLM client
+    llm_client = LLMClient()
+    response = await llm_client.generate(
+        system_prompt=BEAR_SYSTEM_PROMPT,
+        user_prompt=user_prompt,
+        response_model=BearOutput
     )
+    return response
 
 
 def _format_list(items: List[str]) -> str:

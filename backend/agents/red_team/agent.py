@@ -3,6 +3,7 @@
 from typing import Any, Dict, List
 from backend.agents.schemas import RedTeamOutput
 from backend.agents.red_team.prompts import RED_TEAM_SYSTEM_PROMPT, RED_TEAM_USER_PROMPT_TEMPLATE
+from backend.llm.client import LLMClient
 
 
 async def run_red_team(
@@ -91,19 +92,14 @@ async def run_red_team(
         identified_risks=identified_risks
     )
 
-    # TODO: Integrate with Person 5's LLM wrapper once available
-    # llm_client = LLMClient()  # Person 5's client
-    # response = await llm_client.generate(
-    #     system_prompt=RED_TEAM_SYSTEM_PROMPT,
-    #     user_prompt=user_prompt,
-    #     response_model=RedTeamOutput
-    # )
-    # return response
-
-    # Temporary: Return a placeholder to demonstrate function structure
-    raise NotImplementedError(
-        "Awaiting Person 5's LLM client integration in backend.llm.client"
+    # Integrate with LLM client
+    llm_client = LLMClient()
+    response = await llm_client.generate(
+        system_prompt=RED_TEAM_SYSTEM_PROMPT,
+        user_prompt=user_prompt,
+        response_model=RedTeamOutput
     )
+    return response
 
 
 def _format_list(items: List[str]) -> str:
