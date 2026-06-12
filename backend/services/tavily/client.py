@@ -5,6 +5,10 @@ Person 2 owns this - no other team accesses Tavily directly
 
 import os
 from typing import List, Dict, Any
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 class TavilySearchService:

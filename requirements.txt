@@ -1,0 +1,25 @@
+# Person 2: Research Intelligence Module
+# Core dependencies for Tavily API integration
+
+# Core APIs (Real API Integration - Phase 2)
+tavily-python>=0.3.0          # Tavily Search API client
+firecrawl-py>=0.0.59          # Firecrawl website scraping
+
+# Environment management
+python-dotenv>=1.0.0          # Load .env files for API keys
+
+# Standard library (built-in, no install needed)
+# - dataclasses (Python 3.7+)
+# - typing (Python 3.5+)
+# - json (Python 2.6+)
+# - os (Python 2.0+)
+# - time (Python 2.0+)
+# - re (Python 2.0+)
+
+# Testing (Optional, for running tests)
+pytest>=7.0.0                 # Testing framework
+pytest-asyncio>=0.21.0        # Async test support
+
+# Optional: Future integrations (Phase 3)
+# crunchbase-python-api>=1.0.0  # Crunchbase API (for Phase 3)
+# python-linkedin-v2>=0.0.3     # LinkedIn API (for Phase 3)

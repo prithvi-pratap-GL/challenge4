@@ -369,6 +369,26 @@ Based on analysis of {len(results)} industry sources."""
         else:
             return "Actively funded"
 
+    def _extract_competitor_name(self, title: str, content: str, startup_name: str) -> str:
+        """Extract competitor name from search results"""
+        import re
+        title_lower = title.lower()
+        content_lower = content.lower()
+
+        # Look for common competitors/alternatives in title
+        common_competitors = ["square", "paypal", "adyen", "stripe", "skrill", "wise", "checkout", "2checkout"]
+        for comp in common_competitors:
+            if comp in title_lower and comp.lower() != startup_name.lower():
+                return comp.title()
+
+        # Try to extract from content
+        names = re.findall(r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?\b', title)
+        for name in names:
+            if name.lower() != startup_name.lower() and len(name) > 2:
+                return name
+
+        return "Competitor"
+
     def _extract_differentiators(self, content: str) -> str:
         """Extract key differentiators"""
         content_lower = content.lower()

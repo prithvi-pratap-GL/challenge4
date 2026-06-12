@@ -5,6 +5,9 @@ Person 2 owns this - extracts structured data from URLs
 
 import os
 from typing import Dict, Any, Optional
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class FirecrawlService:
@@ -25,12 +28,19 @@ class FirecrawlService:
         """
         try:
             response = self.app.scrape_url(url)
+
+            # Response is a Document object, not dict
             return {
                 "url": url,
-                "markdown": response.get("markdown", ""),
-                "html": response.get("html", ""),
-                "metadata": response.get("metadata", {}),
-                "links": response.get("links", []),
+                "markdown": getattr(response, "markdown", ""),
+                "html": getattr(response, "html", ""),
+                "metadata": {
+                    "title": getattr(response, "title", ""),
+                    "description": getattr(response.metadata, "description", ""),
+                    "url": getattr(response.metadata, "url", ""),
+                } if hasattr(response, "metadata") else {},
+                "links": getattr(response, "links", []),
+                "status_code": getattr(response.metadata, "status_code", 200) if hasattr(response, "metadata") else 200,
                 "status": "success"
             }
         except Exception as e:
@@ -60,4 +70,5 @@ class FirecrawlService:
             "has_team_page": "team" in markdown.lower(),
             "has_pricing": "pricing" in markdown.lower(),
             "has_about": "about" in markdown.lower(),
+            "content_length": len(markdown),
         }
