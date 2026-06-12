@@ -1,0 +1,149 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #F8FAFC;
+  color: #0F172A;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #0F172A;
+}
+
+h1 {
+  font-size: 3.75rem;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+h2 {
+  font-size: 2.25rem;
+  line-height: 1.2;
+}
+
+h3 {
+  font-size: 1.875rem;
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+h4 {
+  font-size: 1.25rem;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+p {
+  color: #64748B;
+  line-height: 1.6;
+}
+
+code {
+  font-family: 'JetBrains Mono', monospace;
+  background: #F1F5F9;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #E2E8F0;
+  color: #4F46E5;
+  font-size: 0.875em;
+}
+
+/* Smooth transitions */
+* {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button, input, textarea, select {
+  transition: all 0.15s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Premium button utilities */
+.btn-primary {
+  @apply bg-primary text-white font-semibold py-3 px-6 rounded-lg transition-all shadow-sm hover:shadow-md hover:bg-primary/90 active:scale-95;
+}
+
+.btn-secondary {
+  @apply bg-bg-light border border-border-dark text-text-primary font-semibold py-3 px-6 rounded-lg transition-all shadow-sm hover:shadow-md hover:bg-neutral/5 active:scale-95;
+}
+
+.btn-accent {
+  @apply bg-accent text-white font-semibold py-3 px-6 rounded-lg transition-all shadow-sm hover:shadow-md hover:bg-accent/90 active:scale-95;
+}
+
+.btn-success {
+  @apply bg-success text-white font-semibold py-3 px-6 rounded-lg transition-all shadow-sm hover:shadow-md hover:bg-success/90 active:scale-95;
+}
+
+/* Card styling */
+.card {
+  @apply bg-bg-card border border-border rounded-lg p-6 shadow-sm hover:shadow-md transition-all;
+}
+
+.card-elevated {
+  @apply bg-bg-card border border-border rounded-lg p-6 shadow-lg hover:shadow-xl transition-all;
+}
+
+/* Input styling */
+.input-primary {
+  @apply bg-bg-light border border-border rounded-lg px-4 py-3 text-text-primary font-medium placeholder-text-tertiary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/10 transition-all;
+}
+
+/* Badge styling */
+.badge {
+  @apply inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-semibold;
+}
+
+.badge-success {
+  @apply badge bg-success/10 text-success;
+}
+
+.badge-warning {
+  @apply badge bg-warning/10 text-warning;
+}
+
+.badge-error {
+  @apply badge bg-error/10 text-error;
+}
+
+.badge-neutral {
+  @apply badge bg-neutral/10 text-neutral;
+}
