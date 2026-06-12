@@ -8,6 +8,22 @@ import asyncio
 from langgraph.graph import StateGraph
 from backend.contracts import AnalysisState, FinalReport
 
+# Import Person 2 research agent
+try:
+    from backend.agents.research.agent import run_research
+except ImportError:
+    run_research = None
+
+# Import Person 3 knowledge agents
+try:
+    from backend.ingestion.pdf.pipeline import ingest_pitch_deck
+    from backend.ingestion.website.pipeline import ingest_website
+    from backend.knowledge.retrieval.service import retrieve_context
+except ImportError:
+    ingest_pitch_deck = None
+    ingest_website = None
+    retrieve_context = None
+
 # Import Person 4 agents
 from backend.agents.bull.agent import run_bull_case
 from backend.agents.bear.agent import run_bear_case
@@ -15,6 +31,37 @@ from backend.agents.red_team.agent import run_red_team
 from backend.agents.reviewer.agent import review_analysis
 from backend.agents.committee.agent import run_committee
 from backend.agents.digital_twin.agent import simulate_scenarios
+
+
+async def node_research(state: AnalysisState) -> AnalysisState:
+    """Research node - calls Person 2's research agent."""
+    if run_research is None:
+        # Fallback if Person 2 agent not available
+        state.research_output = {}
+        return state
+
+    research_output = await run_research(state.startup_input)
+    state.research_output = research_output
+    return state
+
+
+async def node_knowledge(state: AnalysisState) -> AnalysisState:
+    """Knowledge node - calls Person 3's ingestion and retrieval agents."""
+    if ingest_pitch_deck is None:
+        # Fallback if Person 3 agents not available
+        state.knowledge_output = {}
+        return state
+
+    # Ingest based on available inputs
+    if state.startup_input.pitch_deck_path:
+        knowledge_output = await ingest_pitch_deck(state.startup_input.pitch_deck_path)
+    elif state.startup_input.website_url:
+        knowledge_output = await ingest_website(state.startup_input.website_url)
+    else:
+        knowledge_output = {}
+
+    state.knowledge_output = knowledge_output
+    return state
 
 
 async def node_bull(state: AnalysisState) -> AnalysisState:
@@ -109,18 +156,21 @@ def build_analysis_graph():
     """
     Build the complete analysis workflow graph.
 
-    Workflow:
-    1. Bull -> Bear -> Red Team (parallel processing)
-    2. All three -> Reviewer
-    3. Reviewer -> [Decision: retry?]
+    Complete Workflow:
+    1. Research (Person 2) -> Knowledge (Person 3)
+    2. Knowledge -> Bull & Bear & Red Team (Person 4, parallel)
+    3. All three -> Reviewer (Person 4)
+    4. Reviewer -> [Decision: retry?]
        - If retry: back to Bull
        - If ok: continue to Committee
-    4. Committee -> Digital Twin
-    5. Digital Twin -> Final Report
+    5. Committee -> Digital Twin
+    6. Digital Twin -> Final Report
     """
     graph = StateGraph(AnalysisState)
 
     # Add nodes
+    graph.add_node("research", node_research)
+    graph.add_node("knowledge", node_knowledge)
     graph.add_node("bull", node_bull)
     graph.add_node("bear", node_bear)
     graph.add_node("red_team", node_red_team)
@@ -129,10 +179,14 @@ def build_analysis_graph():
     graph.add_node("digital_twin", node_digital_twin)
     graph.add_node("final_report", node_final_report)
 
-    # Add edges - parallel execution
-    graph.add_edge("START", "bull")
-    graph.add_edge("START", "bear")
-    graph.add_edge("START", "red_team")
+    # Add edges - sequential: Research -> Knowledge
+    graph.add_edge("START", "research")
+    graph.add_edge("research", "knowledge")
+
+    # Parallel execution: Knowledge -> Bull & Bear & Red Team
+    graph.add_edge("knowledge", "bull")
+    graph.add_edge("knowledge", "bear")
+    graph.add_edge("knowledge", "red_team")
 
     # All three converge to reviewer
     graph.add_edge("bull", "reviewer")
