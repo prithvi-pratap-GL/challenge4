@@ -1,0 +1,54 @@
+{
+  "startup_name": "Stripe",
+  "timestamp": "2026-06-12T15:04:45.618180",
+  "research_data": {
+    "founders": [
+      {
+        "name": "Patrick Collison",
+        "background": "Ivy League / Top University graduate",
+        "experience": "Founder and startup experience",
+        "credibility_score": 85,
+        "sources": [
+          "https://crunchbase.com/person/patrick-collison"
+        ]
+      },
+      {
+        "name": "John Collison",
+        "background": "Technical background in software/engineering",
+        "experience": "Senior executive experience in technology companies",
+        "credibility_score": 80,
+        "sources": [
+          "https://linkedin.com/in/johncollison"
+        ]
+      }
+    ],
+    "competitors": [
+      {
+        "name": "Square",
+        "market_position": "Market leader with significant share",
+        "funding": "Public company",
+        "key_differentiators": "Mobile-first or platform-based approach",
+        "sources": [
+          "https://square.com/about"
+        ]
+      },
+      {
+        "name": "PayPal",
+        "market_position": "Established player with strong market presence",
+        "funding": "Public company",
+        "key_differentiators": "Unique value proposition and market approach",
+        "sources": [
+          "https://paypal.com/about"
+        ]
+      }
+    ],
+    "market_summary": "Stripe operates in the payment processing market with strong growth",
+    "funding_summary": "Series A-E funding rounds with institutional investors",
+    "industry_summary": "FinTech industry experiencing rapid digital transformation",
+    "sources": [
+      "https://stripe.com",
+      "https://crunchbase.com/organization/stripe",
+      "https://techcrunch.com/stripe"
+    ]
+  }
+}

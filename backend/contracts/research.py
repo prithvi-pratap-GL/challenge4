@@ -5,7 +5,7 @@ All downstream consumers (Person 3, 4, 5) import from this contract only
 """
 
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Dict, Any
 
 
 @dataclass
@@ -37,6 +37,7 @@ class ResearchOutput:
     - No other team accesses Tavily directly
     - Everyone consumes ResearchOutput only
     - All data is sourced and attributed
+    - Enriched sources include full content from Firecrawl
     """
     founders: List[Founder]
     competitors: List[Competitor]
@@ -44,6 +45,7 @@ class ResearchOutput:
     funding_summary: str
     industry_summary: str
     sources: List[str]  # All unique URLs used across research
+    enriched_sources: Dict[str, Any] = field(default_factory=dict)  # Firecrawl content by URL
 
     def to_dict(self):
         """Convert to dictionary for JSON serialization"""
@@ -71,5 +73,6 @@ class ResearchOutput:
             "market_summary": self.market_summary,
             "funding_summary": self.funding_summary,
             "industry_summary": self.industry_summary,
-            "sources": self.sources
+            "sources": self.sources,
+            "enriched_sources": self.enriched_sources
         }

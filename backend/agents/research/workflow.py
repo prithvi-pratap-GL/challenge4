@@ -11,7 +11,11 @@ from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from backend.contracts.research import ResearchOutput, Founder, Competitor
 from backend.contracts.startup import StartupInput
+from backend.contracts.knowledge import KnowledgeInput
 from backend.services.tavily.client import TavilySearchService
+from backend.services.storage.json_storage import JSONStorageService
+from backend.services.enrichment.enricher import ResearchEnricher
+from backend.services.handoff.person3_handoff import Person3Handoff
 from backend.agents.research.prompts import (
     FOUNDER_ANALYSIS_PROMPT,
     COMPETITOR_ANALYSIS_PROMPT,
@@ -35,7 +39,11 @@ class ResearchWorkflow:
             print(f"Warning: Tavily initialization failed: {e}")
             self.tavily = None
 
+        self.storage = JSONStorageService()
+        self.enricher = ResearchEnricher()
+        self.handoff = Person3Handoff()
         self.sources = set()  # Track all sources used
+        self.enriched_sources = {}  # Track enriched content
         self.startup_name = ""
 
     def run_research(self, startup_input: StartupInput) -> ResearchOutput:
@@ -74,8 +82,22 @@ class ResearchWorkflow:
                 market_summary=market_summary,
                 funding_summary=funding_summary,
                 industry_summary=industry_summary,
-                sources=sources_list
+                sources=sources_list,
+                enriched_sources=self.enriched_sources
             )
+
+            # Save research output to JSON
+            try:
+                self.storage.save_research(startup_input.startup_name, output)
+            except Exception as e:
+                print(f"[WARN] Failed to save research to JSON: {e}")
+
+            # Handoff to Person 3 (RAG pipeline)
+            try:
+                knowledge_input = self._handoff_to_person3(output, startup_input.startup_name)
+                print(f"[HANDOFF] Research output passed to Person 3 ({len(knowledge_input.enriched_sources)} enriched sources)")
+            except Exception as e:
+                print(f"[WARN] Person 3 handoff failed: {e}")
 
             print(f"[SUCCESS] Research complete. Found {len(founders)} founders, {len(competitors)} competitors, {len(sources_list)} sources")
             return output
@@ -85,7 +107,7 @@ class ResearchWorkflow:
             raise
 
     def _research_founders(self, startup_name: str) -> List[Founder]:
-        """Research agent 1: Founder Intelligence - REAL API"""
+        """Research agent 1: Founder Intelligence - REAL API + Firecrawl enrichment"""
         try:
             if not self.tavily:
                 return []
@@ -94,27 +116,37 @@ class ResearchWorkflow:
             query = f"{startup_name} founders team CEO founders background"
             results = self.tavily.search(query, max_results=8)
 
+            # Enrich top sources with Firecrawl
+            urls = [r["url"] for r in results[:3]]
+            enriched = self.enricher.enrich_sources(urls, max_urls=3)
+            self.enriched_sources.update(enriched)
+
             founders = []
             seen_names = set()
 
             for result in results:
                 try:
                     self.sources.add(result["url"])
-                    content = result.get("content", "").lower()
+
+                    # Use enriched content if available, otherwise fall back to snippet
+                    url = result["url"]
+                    enriched_data = enriched.get(url, {})
+                    content = self.enricher.merge_content(result.get("content", ""), enriched_data)
+                    content_lower = content.lower()
 
                     # Extract founder info from content
-                    if "founder" in content or "ceo" in content or "team" in content:
+                    if "founder" in content_lower or "ceo" in content_lower or "team" in content_lower:
                         # Simple name extraction (in production, use NER/LLM)
-                        founder_name = self._extract_founder_name(result.get("title", ""), content)
+                        founder_name = self._extract_founder_name(result.get("title", ""), content_lower)
 
                         if founder_name and founder_name not in seen_names:
                             seen_names.add(founder_name)
-                            credibility_score = self._calculate_credibility(content, result.get("url", ""))
+                            credibility_score = self._calculate_credibility(content_lower, result.get("url", ""))
 
                             founder = Founder(
                                 name=founder_name,
-                                background=self._extract_background(content),
-                                experience=self._extract_experience(content),
+                                background=self._extract_background(content_lower),
+                                experience=self._extract_experience(content_lower),
                                 credibility_score=credibility_score,
                                 sources=[result["url"]]
                             )
@@ -124,7 +156,7 @@ class ResearchWorkflow:
                     print(f"[WARN] Error processing founder result: {e}")
                     continue
 
-            print(f"[RESULT] Found {len(founders)} founders via Tavily")
+            print(f"[RESULT] Found {len(founders)} founders via Tavily + Firecrawl")
             return founders[:5]  # Return top 5
 
         except Exception as e:
@@ -132,7 +164,7 @@ class ResearchWorkflow:
             return []
 
     def _research_competitors(self, startup_name: str) -> List[Competitor]:
-        """Research agent 2: Competitor Discovery - REAL API"""
+        """Research agent 2: Competitor Discovery - REAL API + Firecrawl enrichment"""
         try:
             if not self.tavily:
                 return []
@@ -141,26 +173,36 @@ class ResearchWorkflow:
             query = f"{startup_name} competitors alternatives similar products market"
             results = self.tavily.search(query, max_results=8)
 
+            # Enrich top sources with Firecrawl
+            urls = [r["url"] for r in results[:3]]
+            enriched = self.enricher.enrich_sources(urls, max_urls=3)
+            self.enriched_sources.update(enriched)
+
             competitors = []
             seen_competitors = set()
 
             for result in results:
                 try:
                     self.sources.add(result["url"])
-                    content = result.get("content", "").lower()
+
+                    # Use enriched content if available
+                    url = result["url"]
+                    enriched_data = enriched.get(url, {})
+                    content = self.enricher.merge_content(result.get("content", ""), enriched_data)
+                    content_lower = content.lower()
                     title = result.get("title", "")
 
                     # Extract competitor info
-                    competitor_name = self._extract_competitor_name(title, content, startup_name)
+                    competitor_name = self._extract_competitor_name(title, content_lower, startup_name)
 
                     if competitor_name and competitor_name not in seen_competitors:
                         seen_competitors.add(competitor_name)
 
                         competitor = Competitor(
                             name=competitor_name,
-                            market_position=self._extract_market_position(content, title),
-                            funding=self._extract_funding_info(content),
-                            key_differentiators=self._extract_differentiators(content),
+                            market_position=self._extract_market_position(content_lower, title),
+                            funding=self._extract_funding_info(content_lower),
+                            key_differentiators=self._extract_differentiators(content_lower),
                             sources=[result["url"]]
                         )
                         competitors.append(competitor)
@@ -169,7 +211,7 @@ class ResearchWorkflow:
                     print(f"[WARN] Error processing competitor result: {e}")
                     continue
 
-            print(f"[RESULT] Found {len(competitors)} competitors via Tavily")
+            print(f"[RESULT] Found {len(competitors)} competitors via Tavily + Firecrawl")
             return competitors[:5]
 
         except Exception as e:
@@ -177,7 +219,7 @@ class ResearchWorkflow:
             return []
 
     def _research_market(self, startup_name: str) -> str:
-        """Research agent 3: Market Analysis - REAL API"""
+        """Research agent 3: Market Analysis - REAL API + Firecrawl enrichment"""
         try:
             if not self.tavily:
                 return ""
@@ -185,11 +227,21 @@ class ResearchWorkflow:
             query = f"{startup_name} market size TAM market analysis growth rate"
             results = self.tavily.search(query, max_results=6)
 
+            # Enrich top sources
+            urls = [r["url"] for r in results[:3]]
+            enriched = self.enricher.enrich_sources(urls, max_urls=3)
+            self.enriched_sources.update(enriched)
+
             for result in results:
                 self.sources.add(result["url"])
 
-            # Extract key insights from results
-            insights = [result.get("content", "")[:200] for result in results[:3]]
+            # Extract key insights, preferring enriched content
+            insights = []
+            for result in results[:3]:
+                url = result["url"]
+                enriched_data = enriched.get(url, {})
+                content = self.enricher.merge_content(result.get("content", ""), enriched_data)
+                insights.append(content[:200])
 
             summary = f"""Market Analysis for {startup_name}:
 
@@ -202,7 +254,7 @@ Market Assessment:
 - TAM (Total Addressable Market) shows strong expansion potential
 - Competitive intensity is moderate with room for differentiation
 
-Based on analysis of {len(results)} market sources."""
+Based on analysis of {len(results)} market sources (enriched with full page content)."""
 
             print(f"[RESULT] Market analysis complete from {len(results)} sources")
             return summary
@@ -212,7 +264,7 @@ Based on analysis of {len(results)} market sources."""
             return ""
 
     def _research_funding(self, startup_name: str) -> str:
-        """Research agent 4: Funding Tracker - REAL API"""
+        """Research agent 4: Funding Tracker - REAL API + Firecrawl enrichment"""
         try:
             if not self.tavily:
                 return ""
@@ -220,13 +272,20 @@ Based on analysis of {len(results)} market sources."""
             query = f"{startup_name} funding rounds Series A B C investors raised"
             results = self.tavily.search(query, max_results=6)
 
+            # Enrich top sources
+            urls = [r["url"] for r in results[:3]]
+            enriched = self.enricher.enrich_sources(urls, max_urls=3)
+            self.enriched_sources.update(enriched)
+
             for result in results:
                 self.sources.add(result["url"])
 
-            # Extract funding insights
+            # Extract funding insights with enriched content
             funding_insights = []
             for result in results[:3]:
-                content = result.get("content", "")
+                url = result["url"]
+                enriched_data = enriched.get(url, {})
+                content = self.enricher.merge_content(result.get("content", ""), enriched_data)
                 if any(word in content.lower() for word in ["series", "raised", "funding", "investor"]):
                     funding_insights.append(content[:200])
 
@@ -241,7 +300,7 @@ Investor Signals:
 - Quality investors backing the company
 - Fundraising momentum is positive
 
-Analysis based on {len(results)} funding sources."""
+Analysis based on {len(results)} funding sources (enriched with full page content)."""
 
             print(f"[RESULT] Funding analysis complete from {len(results)} sources")
             return summary
@@ -251,7 +310,7 @@ Analysis based on {len(results)} funding sources."""
             return ""
 
     def _research_industry(self, startup_name: str) -> str:
-        """Research agent 5: Industry Intelligence - REAL API"""
+        """Research agent 5: Industry Intelligence - REAL API + Firecrawl enrichment"""
         try:
             if not self.tavily:
                 return ""
@@ -259,11 +318,21 @@ Analysis based on {len(results)} funding sources."""
             query = f"{startup_name} industry trends regulatory landscape market dynamics"
             results = self.tavily.search(query, max_results=6)
 
+            # Enrich top sources
+            urls = [r["url"] for r in results[:3]]
+            enriched = self.enricher.enrich_sources(urls, max_urls=3)
+            self.enriched_sources.update(enriched)
+
             for result in results:
                 self.sources.add(result["url"])
 
-            # Extract industry insights
-            industry_insights = [result.get("content", "")[:200] for result in results[:3]]
+            # Extract industry insights with enriched content
+            industry_insights = []
+            for result in results[:3]:
+                url = result["url"]
+                enriched_data = enriched.get(url, {})
+                content = self.enricher.merge_content(result.get("content", ""), enriched_data)
+                industry_insights.append(content[:200])
 
             summary = f"""Industry Analysis for {startup_name}:
 
@@ -276,7 +345,7 @@ Regulatory & Market Context:
 - Market consolidation trends present both opportunities and risks
 - Macro factors creating favorable tailwinds for growth
 
-Based on analysis of {len(results)} industry sources."""
+Based on analysis of {len(results)} industry sources (enriched with full page content)."""
 
             print(f"[RESULT] Industry analysis complete from {len(results)} sources")
             return summary
@@ -401,3 +470,34 @@ Based on analysis of {len(results)} industry sources."""
             return "Mobile-first or platform-based approach"
         else:
             return "Unique value proposition and market approach"
+
+    def _handoff_to_person3(self, research_output: ResearchOutput, startup_name: str) -> KnowledgeInput:
+        """
+        Handoff research output to Person 3's RAG pipeline
+
+        Person 3 (Knowledge Intelligence) uses this to:
+        - Process and chunk content
+        - Generate embeddings
+        - Store in vector database (Qdrant)
+        - Build memory index
+
+        Args:
+            research_output: Complete research output from all 5 agents
+            startup_name: Name of the startup
+
+        Returns:
+            KnowledgeInput ready for Person 3's ingestion pipeline
+        """
+        print(f"\n[HANDOFF] Preparing research output for Person 3's RAG pipeline...")
+
+        # Convert to knowledge input
+        knowledge_input = Person3Handoff.convert(research_output, startup_name)
+
+        # Save handoff for audit trail
+        try:
+            handoff_path = Person3Handoff.save_handoff(knowledge_input)
+            print(f"[HANDOFF] Person 3 input saved: {handoff_path}")
+        except Exception as e:
+            print(f"[WARN] Could not save handoff file: {e}")
+
+        return knowledge_input
