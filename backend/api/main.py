@@ -11,10 +11,8 @@ from backend.api.routes import health, analysis
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifecycle."""
-    # Startup
     print("Starting VentureMind AI API")
     yield
-    # Shutdown
     print("Shutting down VentureMind AI API")
 
 

@@ -4,23 +4,25 @@ Person 3 returns these contracts.
 Person 5 owns the contract definitions.
 """
 
-from pydantic import BaseModel
-from typing import List
+from dataclasses import dataclass, field
+from typing import List, Dict, Any
 
 
-class KnowledgeOutput(BaseModel):
+@dataclass
+class KnowledgeOutput:
     """Knowledge Intelligence module output."""
 
     startup_summary: str
     business_model: str
-    risks: List[str] = []
-    financials: List[str] = []
-    market_claims: List[str] = []
-    evidence: List[str] = []
+    risks: List[str] = field(default_factory=list)
+    financials: List[str] = field(default_factory=list)
+    market_claims: List[str] = field(default_factory=list)
+    evidence: List[str] = field(default_factory=list)
 
 
-class RetrievalOutput(BaseModel):
+@dataclass
+class RetrievalOutput:
     """RAG retrieval output."""
 
     context: str
-    sources: List[str] = []
+    sources: List[str] = field(default_factory=list)

@@ -3,11 +3,12 @@
 Person 5 owns this contract.
 """
 
-from pydantic import BaseModel
+from dataclasses import dataclass
 from typing import Optional
 
 
-class StartupInput(BaseModel):
+@dataclass
+class StartupInput:
     """Input contract for startup analysis."""
 
     startup_name: str

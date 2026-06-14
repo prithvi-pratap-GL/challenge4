@@ -152,6 +152,7 @@ cache/
 .cache/
 uploads/
 reports/
+research_results/
 exports/
 generated_reports/
 artifacts/
