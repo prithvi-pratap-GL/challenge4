@@ -43,29 +43,58 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
 class ResearchApiService {
   /**
-   * Run comprehensive research on a startup
+   * Start comprehensive analysis on a startup
    */
-  async runResearch(startupName: string): Promise<ResearchResponse> {
+  async runResearch(startupName: string, websiteUrl?: string, pitchDeckPath?: string): Promise<any> {
     try {
-      const response = await fetch(`${API_BASE_URL}/research`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/analysis`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           startup_name: startupName,
-          research_type: "comprehensive",
+          website_url: websiteUrl,
+          pitch_deck_path: pitchDeckPath,
         }),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.detail || "Research failed");
+        throw new Error(error.detail || "Analysis failed");
       }
 
       return await response.json();
     } catch (error) {
-      console.error("Research API error:", error);
+      console.error("Analysis API error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get analysis status and progress
+   */
+  async getAnalysisStatus(analysisId: string): Promise<any> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/analysis/${analysisId}`);
+      if (!response.ok) throw new Error("Failed to get analysis status");
+      return await response.json();
+    } catch (error) {
+      console.error("Status check error:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get final report for analysis
+   */
+  async getFinalReport(analysisId: string): Promise<any> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/v1/report/${analysisId}`);
+      if (!response.ok) throw new Error("Failed to get report");
+      return await response.json();
+    } catch (error) {
+      console.error("Report fetch error:", error);
       throw error;
     }
   }
@@ -75,24 +104,10 @@ class ResearchApiService {
    */
   async checkHealth(): Promise<boolean> {
     try {
-      const response = await fetch(`${API_BASE_URL}/health`);
+      const response = await fetch(`${API_BASE_URL}/api/v1/health`);
       return response.ok;
     } catch {
       return false;
-    }
-  }
-
-  /**
-   * Get service status
-   */
-  async getStatus() {
-    try {
-      const response = await fetch(`${API_BASE_URL}/status`);
-      if (!response.ok) throw new Error("Failed to get status");
-      return await response.json();
-    } catch (error) {
-      console.error("Status check error:", error);
-      throw error;
     }
   }
 }

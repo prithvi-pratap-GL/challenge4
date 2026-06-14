@@ -18,3 +18,20 @@ async def health_check():
 async def readiness_check():
     """Readiness check endpoint."""
     return {"status": "ready", "service": "venturemind-ai"}
+
+
+@router.get("/status")
+async def service_status():
+    """Service status endpoint."""
+    return {
+        "status": "running",
+        "service": "venturemind-ai",
+        "features": [
+            "Startup analysis",
+            "Research intelligence",
+            "Knowledge extraction",
+            "Agent analysis",
+            "Committee decision",
+            "Scenario simulation"
+        ]
+    }

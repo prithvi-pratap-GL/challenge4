@@ -7,10 +7,11 @@ import { useState, useCallback } from "react";
 import researchApi, { ResearchResponse } from "../services/researchApi";
 
 interface UseResearchState {
-  data: ResearchResponse | null;
+  data: any | null;
   loading: boolean;
   error: string | null;
   progress: string;
+  analysisId: string | null;
 }
 
 export function useResearch() {
@@ -19,26 +20,55 @@ export function useResearch() {
     loading: false,
     error: null,
     progress: "",
+    analysisId: null,
   });
 
-  const runResearch = useCallback(async (startupName: string) => {
+  const runResearch = useCallback(async (startupName: string, websiteUrl?: string, pitchDeckPath?: string) => {
     setState({
       data: null,
       loading: true,
       error: null,
-      progress: "Initializing research...",
+      progress: "Starting analysis...",
+      analysisId: null,
     });
 
     try {
-      setState((prev) => ({ ...prev, progress: "Researching founders..." }));
-      const result = await researchApi.runResearch(startupName);
+      const result = await researchApi.runResearch(startupName, websiteUrl, pitchDeckPath);
+      const analysisId = result.id;
 
       setState({
         data: result,
         loading: false,
         error: null,
-        progress: "Research complete!",
+        progress: "Analysis started",
+        analysisId,
       });
+
+      // Poll for status
+      let isComplete = false;
+      let pollCount = 0;
+      while (!isComplete && pollCount < 120) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const status = await researchApi.getAnalysisStatus(analysisId);
+
+        setState((prev) => ({
+          ...prev,
+          progress: `${status.current_agent} - ${status.progress}%`,
+        }));
+
+        if (status.status === "completed") {
+          const report = await researchApi.getFinalReport(analysisId);
+          setState({
+            data: report,
+            loading: false,
+            error: null,
+            progress: "Analysis complete!",
+            analysisId,
+          });
+          isComplete = true;
+        }
+        pollCount++;
+      }
 
       return result;
     } catch (err) {
@@ -48,6 +78,7 @@ export function useResearch() {
         loading: false,
         error,
         progress: "",
+        analysisId: null,
       });
       throw err;
     }

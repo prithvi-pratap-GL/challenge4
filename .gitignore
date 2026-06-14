@@ -197,3 +197,5 @@ settings.local.*
 # Keep these tracked
 !.gitkeep
 !.env.example
+
+testingHF.py
