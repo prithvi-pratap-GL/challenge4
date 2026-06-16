@@ -1,0 +1,45 @@
+# Core Framework & Web Server
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Configuration & Environment Management
+pydantic
+pydantic-settings
+python-dotenv
+
+# Async Runtime & Concurrency
+asyncio-contextmanager
+
+# LLM & AI Integration (Unpinned for Python 3.14 compatibility)
+openai
+langchain
+langgraph
+sentence-transformers
+
+# Vector Database & Search
+qdrant-client
+
+# Document Processing (Unpinned for Python 3.14 compatibility)
+PyMuPDF
+beautifulsoup4
+firecrawl
+httpx
+
+# Database & ORM
+sqlalchemy
+sqlalchemy[asyncio]
+asyncpg
+psycopg2-binary
+
+# Logging & Observability
+python-json-logger
+
+# Development & Testing
+pytest
+pytest-asyncio
+pytest-cov
+black
+flake8
+mypy
+ruff

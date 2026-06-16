@@ -1,0 +1,134 @@
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 80px 0 40px;
+  max-width: 640px;
+}
+
+.empty-state-mark {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--signal);
+  margin: 0 0 18px;
+}
+
+.empty-state h1 {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 5vw, 46px);
+  font-weight: 580;
+  line-height: 1.15;
+  margin: 0 0 18px;
+  letter-spacing: -0.01em;
+}
+
+.empty-state p {
+  font-size: 15.5px;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  margin: 0 0 10px;
+  max-width: 540px;
+}
+
+.empty-state-pillars {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 32px;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .empty-state-pillars {
+    grid-template-columns: 1fr;
+  }
+}
+
+.empty-pillar {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  background: var(--ink-soft);
+}
+
+.empty-pillar-icon {
+  color: var(--signal);
+  margin-bottom: 10px;
+}
+
+.empty-pillar h3 {
+  font-size: 13.5px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.empty-pillar p {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+.skeleton-hero {
+  height: 220px;
+  border-radius: var(--radius-lg);
+  background: var(--ink-soft);
+  margin-bottom: 28px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 860px) {
+  .skeleton-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.skeleton-card {
+  height: 110px;
+  border-radius: var(--radius-md);
+  background: var(--ink-soft);
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-body {
+  height: 380px;
+  border-radius: var(--radius-lg);
+  background: var(--ink-soft);
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-hero::after,
+.skeleton-card::after,
+.skeleton-body::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(246, 243, 236, 0.04) 50%,
+    transparent 70%
+  );
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}

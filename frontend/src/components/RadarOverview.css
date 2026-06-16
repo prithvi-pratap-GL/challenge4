@@ -1,0 +1,88 @@
+.radar-panel {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--ink-soft);
+  padding: 24px 28px 12px;
+  margin-bottom: 28px;
+}
+
+.radar-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.radar-panel-title {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 580;
+  margin: 0;
+}
+
+.radar-panel-sub {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
+.radar-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+@media (max-width: 760px) {
+  .radar-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.radar-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.radar-legend-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 56px;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.radar-legend-name {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.radar-legend-track {
+  height: 6px;
+  background: var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.radar-legend-fill {
+  height: 100%;
+  border-radius: 4px;
+}
+
+.radar-legend-value {
+  font-family: var(--font-mono);
+  text-align: right;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.recharts-polar-grid-concentric-polygon {
+  fill: rgba(246, 243, 236, 0.02);
+}
